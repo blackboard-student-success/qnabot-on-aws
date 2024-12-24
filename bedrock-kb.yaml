@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Template for Bedrock Knowledge Base with S3 bucket'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: dev
+    Description: Environment name (dev, staging, prod, etc)
+    AllowedPattern: ^[a-zA-Z0-9-]*$
+
+Resources:
+  KnowledgeBaseS3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  KnowledgeBaseBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref KnowledgeBaseS3Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowBedrockAccess
+            Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: 
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - !GetAtt KnowledgeBaseS3Bucket.Arn
+              - !Sub ${KnowledgeBaseS3Bucket.Arn}/*
+
+  KnowledgeBase:
+    Type: AWS::Bedrock::KnowledgeBase
+    Properties:
+      Name: !Sub ${EnvironmentName}-kb
+      Description: Knowledge base for my data
+      DataSource:
+        Name: !Sub ${EnvironmentName}-datasource
+        DataSourceConfiguration:
+          S3Configuration:
+            BucketName: !Ref KnowledgeBaseS3Bucket
+
+Outputs:
+  KnowledgeBaseId:
+    Description: ID of the created Knowledge Base
+    Value: !Ref KnowledgeBase
+    Export:
+      Name: !Sub ${AWS::StackName}-KnowledgeBaseId
+
+  BucketName:
+    Description: Name of the S3 bucket created for the Knowledge Base
+    Value: !Ref KnowledgeBaseS3Bucket
+    Export:
+      Name: !Sub ${AWS::StackName}-BucketName
+
+  BucketArn:
+    Description: ARN of the S3 bucket
+    Value: !GetAtt KnowledgeBaseS3Bucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-BucketArn
+

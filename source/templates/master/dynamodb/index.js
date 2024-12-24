@@ -28,4 +28,23 @@ module.exports = {
         },
         Metadata: { cfn_nag: util.cfnNag(['W74']) },
     },
+    SchoolTable: {
+        Type: 'AWS::DynamoDB::Table',
+        Properties: {
+            TableName: { 'Fn::Sub': '${AWS::StackName}-schools' },
+            AttributeDefinitions: [
+                {
+                    AttributeName: 'schoolId',
+                    AttributeType: 'S',
+                },
+            ],
+            KeySchema: [
+                {
+                    AttributeName: 'schoolId',
+                    KeyType: 'HASH',
+                },
+            ],
+            BillingMode: 'PAY_PER_REQUEST',
+        },
+    },
 };
