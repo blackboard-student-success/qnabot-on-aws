@@ -56,32 +56,28 @@ async function getSchoolInfo(schoolId) {
 // Also handle web crawler if needed
 // 2 options: have external/internal folders as top-level vs. sub-folder of institution, or vice-versa
 // Consider if structure matters more for AWS side, or customer-side for ease of upload.
-function createSchoolFilter(schoolName, filterType) {
-    switch (filterType) {
-    case 'shared':
-        return {
-            equals: {
-                key: 'schoolName',
-                value: schoolName,
-            },
-        };
-    case 'prefix':
-        return {
-            startsWith: {
-                key: 'x-amz-bedrock-kb-source-uri',
-                value: `s3://anthology-university-folders/${schoolName}/`,
-            },
-        };
-    case 'dedicated':
-        return {
-            startsWith: {
-                key: 'x-amz-bedrock-kb-source-uri',
-                value: `s3://anthology-${schoolName.toLowerCase()}/`,
-            },
-        };
-    default:
-        throw new Error(`Unknown filter type: ${filterType}`);
+function createSchoolFilter(DepartmentName, InstitutionName, Products) {
+    const filters = [];
+    filters.push({
+        startsWith: {
+            key: 'x-amz-bedrock-kb-source-uri',
+            value: `s3://knowledge-bases-test-533267095411-us-east-1/${DepartmentName}/${InstitutionName}/External`,
+        },
+    });
+
+    const products = JSON.parse(Products);
+    const productFilters = products.map((product) => ({
+        startsWith: {
+            key: 'x-amz-bedrock-kb-source-uri',
+            value: `s3://knowledge-bases-test-533267095411-us-east-1/${product}`,
+        },
+    }));
+
+    if (productFilters.length > 0) {
+        filters.push(...productFilters);
     }
+
+    return filters;
 }
 
 function isNoHitsResponse(req, response) {
@@ -218,31 +214,24 @@ async function processRequest(req) {
     } = req._settings;
 
     // Get schoolId from session attributes
-    const schoolId = _.get(req, 'session.schoolId');
+    // const schoolId = _.get(req, 'session.schoolId');
     // if (!schoolId) {
     //     throw new Error('School ID not found in session attributes');
     // }
 
     // Retrieve school info from DynamoDB
-    const schoolInfo = await getSchoolInfo(schoolId);
+    // const schoolInfo = await getSchoolInfo(schoolId);
 
     // Use the retrieved school information
-    const KNOWLEDGE_BASE_ID = schoolInfo.knowledgeBaseId;
-    const { schoolName } = schoolInfo;
+    const KNOWLEDGE_BASE_ID = _.get(req, 'session.KNOWLEDGE_BASE_ID');
+    const KB_FILTERS = _.get(req, 'session.KB_FILTERS');
+    const { InstitutionName, DepartmentName, Products } = KB_FILTERS;
 
     // Create filter based on school info
-    const schoolFilter = createSchoolFilter(schoolName, schoolInfo.filterType);
+    const filters = createSchoolFilter(DepartmentName, InstitutionName, Products);
 
     const finalFilter = {
-        orAll: [
-            schoolFilter,
-            {
-                startsWith: {
-                    key: 'x-amz-bedrock-kb-source-uri',
-                    value: 's3://anthology-common-info/',
-                },
-            },
-        ],
+        orAll: filters,
     };
 
     const KNOWLEDGE_BASE_METADATA_FILTERS = JSON.stringify(finalFilter);
