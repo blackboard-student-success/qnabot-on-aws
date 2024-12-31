@@ -458,7 +458,7 @@ module.exports = {
                                             'bedrock:Retrieve',
                                             'bedrock:RetrieveAndGenerate',
                                         ],
-                                        Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${BedrockKnowledgeBaseId}' },
+                                        Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*' },
                                     },
                                     {
                                         Sid: 'ApplyGuardrailsToKnowledgeBase', // https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-permissions.html#guardrails-permissions-invoke

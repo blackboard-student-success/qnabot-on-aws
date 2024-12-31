@@ -65,18 +65,22 @@ function createSchoolFilter(DepartmentName, InstitutionName, Products) {
         },
     });
 
-    const products = JSON.parse(Products);
-    const productFilters = products.map((product) => ({
-        startsWith: {
-            key: 'x-amz-bedrock-kb-source-uri',
-            value: `s3://knowledge-bases-test-533267095411-us-east-1/${product}`,
-        },
-    }));
+    if (Products) {
+        qnabot.log('Products exist, trying to Parse');
+        const products = Products.split(',')
+            .map((item) => item.trim()).filter((item) => item.length > 0);
+        qnabot.log('Products parsed: ', products);
+        const productFilters = products.map((product) => ({
+            startsWith: {
+                key: 'x-amz-bedrock-kb-source-uri',
+                value: `s3://knowledge-bases-test-533267095411-us-east-1/${product}/External`,
+            },
+        }));
 
-    if (productFilters.length > 0) {
-        filters.push(...productFilters);
+        if (productFilters.length > 0) {
+            filters.push(...productFilters);
+        }
     }
-
     return filters;
 }
 
@@ -221,12 +225,15 @@ async function processRequest(req) {
 
     // Retrieve school info from DynamoDB
     // const schoolInfo = await getSchoolInfo(schoolId);
-
-    // Use the retrieved school information
+    qnabot.log('Made it to right before getting session attributes.');
+    // Use the retrieved information from Connect flow's session attributes.
     const KNOWLEDGE_BASE_ID = _.get(req, 'session.KNOWLEDGE_BASE_ID');
-    const KB_FILTERS = _.get(req, 'session.KB_FILTERS');
-    const { InstitutionName, DepartmentName, Products } = KB_FILTERS;
-
+    // const KB_FILTERS = _.get(req, 'session.KB_FILTERS');
+    const InstitutionName = _.get(req, 'session.InstitutionName');
+    const DepartmentName = _.get(req, 'session.DepartmentName');
+    const Products = _.get(req, 'session.Products');
+    qnabot.log('KB ID: ', KNOWLEDGE_BASE_ID);
+    qnabot.log('Names and Products: ', InstitutionName, DepartmentName, Products);
     // Create filter based on school info
     const filters = createSchoolFilter(DepartmentName, InstitutionName, Products);
 
