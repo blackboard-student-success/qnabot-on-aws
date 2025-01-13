@@ -107,6 +107,7 @@ module.exports = {
                     },
                     LLM_SAGEMAKERINSTANCECOUNT: { Ref: 'LLMSagemakerInitialInstanceCount' }, // force new fn version when instance count changes
                     LLM_LAMBDA_ARN: { Ref: 'LLMLambdaArn' },
+                    DYNAMODB_SCHOOLTABLE: { Ref: 'SchoolTable' },
                     ...examples,
                     ...responsebots,
                     ...util.getCommonEnvironmentVariables(),
@@ -363,6 +364,7 @@ module.exports = {
                             ],
                             Resource: [
                                 { 'Fn::GetAtt': ['UsersTable', 'Arn'] },
+                                { 'Fn::GetAtt': ['SchoolTable', 'Arn'] },
                             ],
                         }],
                     },
@@ -423,9 +425,9 @@ module.exports = {
                                             'bedrock:InvokeModel',
                                         ],
                                         Resource: [
-                                            { 'Fn::If': ['EmbeddingsBedrock', { 'Fn::Sub': ['arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ModelId}', {ModelId: { 'Fn::FindInMap': ['BedrockDefaults', {Ref : 'EmbeddingsBedrockModelId'}, 'ModelID'] }}] }, { Ref: 'AWS::NoValue' }] },
-                                            { 'Fn::If': ['LLMBedrock', { 'Fn::Sub': ['arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ModelId}', {ModelId: { 'Fn::FindInMap': ['BedrockDefaults', {Ref : 'LLMBedrockModelId'}, 'ModelID'] }}] }, { Ref: 'AWS::NoValue' }] },
-                                            { 'Fn::If': ['BedrockKnowledgeBaseEnable', { 'Fn::Sub': ['arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ModelId}', {ModelId: { 'Fn::FindInMap': ['BedrockDefaults', {Ref : 'BedrockKnowledgeBaseModel'}, 'ModelID'] }}] }, { Ref: 'AWS::NoValue' }] },
+                                            { 'Fn::If': ['EmbeddingsBedrock', { 'Fn::Sub': ['arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ModelId}', { ModelId: { 'Fn::FindInMap': ['BedrockDefaults', { Ref: 'EmbeddingsBedrockModelId' }, 'ModelID'] } }] }, { Ref: 'AWS::NoValue' }] },
+                                            { 'Fn::If': ['LLMBedrock', { 'Fn::Sub': ['arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ModelId}', { ModelId: { 'Fn::FindInMap': ['BedrockDefaults', { Ref: 'LLMBedrockModelId' }, 'ModelID'] } }] }, { Ref: 'AWS::NoValue' }] },
+                                            { 'Fn::If': ['BedrockKnowledgeBaseEnable', { 'Fn::Sub': ['arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/${ModelId}', { ModelId: { 'Fn::FindInMap': ['BedrockDefaults', { Ref: 'BedrockKnowledgeBaseModel' }, 'ModelID'] } }] }, { Ref: 'AWS::NoValue' }] },
                                         ],
                                     },
                                     {
@@ -456,7 +458,7 @@ module.exports = {
                                             'bedrock:Retrieve',
                                             'bedrock:RetrieveAndGenerate',
                                         ],
-                                        Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${BedrockKnowledgeBaseId}' },
+                                        Resource: { 'Fn::Sub': 'arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*' },
                                     },
                                     {
                                         Sid: 'ApplyGuardrailsToKnowledgeBase', // https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-permissions.html#guardrails-permissions-invoke

@@ -170,6 +170,9 @@ module.exports = {
         UsersTable: {
             Value: { Ref: 'UsersTable' },
         },
+        SchoolTable: {
+            Value: { Ref: 'SchoolTable' },
+        },
         DefaultSettingsSSMParameterName: {
             Value: { Ref: 'DefaultQnABotSettings' },
         },
@@ -191,9 +194,9 @@ module.exports = {
         TestAllBucket: {
             Value: { Ref: 'TestAllBucket' },
         },
-        ContentDesignerOutputBucket:  {
+        ContentDesignerOutputBucket: {
             Value: { Ref: 'ContentDesignerOutputBucket' },
-        }
+        },
     },
     Parameters: {
         OpenSearchName: {
@@ -436,7 +439,7 @@ module.exports = {
                 'anthropic.claude-3.5-sonnet-v1',
                 'anthropic.claude-3-haiku-v1',
                 'cohere.command-text-v14',
-                'meta.llama3-8b-instruct-v1'
+                'meta.llama3-8b-instruct-v1',
             ],
             Default: 'anthropic.claude-instant-v1',
         },
@@ -490,7 +493,7 @@ module.exports = {
             Description: 'Optional: The number of days to keep logs before expiring. If you would like your logs to never expire, leave this value as 0.',
             Default: 0,
             AllowedValues: [
-                0, 1, 3, 5, 7,  14 , 30 , 60 , 90 , 120 , 150 , 180 , 365 , 400 , 545 , 731 , 1096 , 1827 , 2192 , 2557 , 2922 , 3288 , 3653
+                0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653,
             ],
             MinValue: 0,
         },
@@ -535,7 +538,7 @@ module.exports = {
                 { 'Fn::Not': [{ 'Fn::Equals': [{ Ref: 'AltSearchKendraIndexes' }, ''] }] },
             ],
         },
-        LogRetentionPeriodIsNotZero: { 'Fn::Not': [{ 'Fn::Equals': [{ Ref: 'LogRetentionPeriod' }, 0] }] }
+        LogRetentionPeriodIsNotZero: { 'Fn::Not': [{ 'Fn::Equals': [{ Ref: 'LogRetentionPeriod' }, 0] }] },
     },
     Rules: {
         RequireLambdaArnForLambdaEmbeddingsApi: {
@@ -554,86 +557,86 @@ module.exports = {
     },
     Metadata: {
         'AWS::CloudFormation::Interface': {
-            ParameterGroups: [                {
-                    Label: {
-                        default: 'Step 2A: Set Basic Chatbot Parameters (required)',
-                    },
-                    Parameters: [
-                        'Email',
-                        'Username',
-                        'PublicOrPrivate',
-                        'Language',
-                        'OpenSearchName',
-                        'OpenSearchInstanceType',
-                        'OpenSearchNodeCount',
-                        'OpenSearchEBSVolumeSize',
-                        'OpenSearchDashboardsRetentionMinutes',
-                        'OpenSearchFineGrainAccessControl',
-                        'LexV2BotLocaleIds',
-                        'InstallLexResponseBots',
-                        'FulfillmentConcurrency',
-                        'XraySetting',
-                    ],
+            ParameterGroups: [{
+                Label: {
+                    default: 'Step 2A: Set Basic Chatbot Parameters (required)',
                 },
-                {
-                    Label: {
-                        default: 'Step 2B: Set VPC parameters to deploy QnABot in an existing VPC (optional)',
-                    },
-                    Parameters: [
-                        'VPCSubnetIdList',
-                        'VPCSecurityGroupIdList',
-                    ],
+                Parameters: [
+                    'Email',
+                    'Username',
+                    'PublicOrPrivate',
+                    'Language',
+                    'OpenSearchName',
+                    'OpenSearchInstanceType',
+                    'OpenSearchNodeCount',
+                    'OpenSearchEBSVolumeSize',
+                    'OpenSearchDashboardsRetentionMinutes',
+                    'OpenSearchFineGrainAccessControl',
+                    'LexV2BotLocaleIds',
+                    'InstallLexResponseBots',
+                    'FulfillmentConcurrency',
+                    'XraySetting',
+                ],
+            },
+            {
+                Label: {
+                    default: 'Step 2B: Set VPC parameters to deploy QnABot in an existing VPC (optional)',
                 },
-                {
-                    Label: {
-                        default: 'Step 2C: Enable LLM for Semantic Search with Embeddings (optional)',
-                    },
-                    Parameters: [
-                        'EmbeddingsApi',
-                        'EmbeddingsBedrockModelId',
-                        'SagemakerInitialInstanceCount',
-                        'EmbeddingsLambdaArn',
-                        'EmbeddingsLambdaDimensions',
-                    ],
+                Parameters: [
+                    'VPCSubnetIdList',
+                    'VPCSecurityGroupIdList',
+                ],
+            },
+            {
+                Label: {
+                    default: 'Step 2C: Enable LLM for Semantic Search with Embeddings (optional)',
                 },
-                {
-                    Label: {
-                        default: 'Step 2D: Enable LLM Retrieval and generative text question answering to use with Fallback Option (optional)',
-                    },
-                    Parameters: [
-                        'LLMApi',
-                        'LLMBedrockModelId',
-                        'LLMSagemakerInstanceType',
-                        'LLMSagemakerInitialInstanceCount',
-                        'LLMLambdaArn',
-                    ],
+                Parameters: [
+                    'EmbeddingsApi',
+                    'EmbeddingsBedrockModelId',
+                    'SagemakerInitialInstanceCount',
+                    'EmbeddingsLambdaArn',
+                    'EmbeddingsLambdaDimensions',
+                ],
+            },
+            {
+                Label: {
+                    default: 'Step 2D: Enable LLM Retrieval and generative text question answering to use with Fallback Option (optional)',
                 },
-                {
-                    Label: {
-                        default: 'Step 2E: Select Data Sources as Fallback Option (optional)',
-                    },
-                    Parameters: [
-                        'KendraWebPageIndexId',
-                        'KendraFaqIndexId',
-                        'AltSearchKendraIndexes',
-                        'AltSearchKendraIndexAuth',
-                        'BedrockKnowledgeBaseId',
-                        'BedrockKnowledgeBaseModel',
-                    ],
+                Parameters: [
+                    'LLMApi',
+                    'LLMBedrockModelId',
+                    'LLMSagemakerInstanceType',
+                    'LLMSagemakerInitialInstanceCount',
+                    'LLMLambdaArn',
+                ],
+            },
+            {
+                Label: {
+                    default: 'Step 2E: Select Data Sources as Fallback Option (optional)',
                 },
-                {
-                    Label: {
-                        default: 'Step 2F: Set miscellaneous settings (optional)',
-                    },
-                    Parameters: [
-                        'AdminUserSignUp',
-                        'ApprovedDomain',
-                        'BootstrapBucket',
-                        'BootstrapPrefix',
-                        'BuildExamples',
-                        'LogRetentionPeriod'
-                    ],
+                Parameters: [
+                    'KendraWebPageIndexId',
+                    'KendraFaqIndexId',
+                    'AltSearchKendraIndexes',
+                    'AltSearchKendraIndexAuth',
+                    'BedrockKnowledgeBaseId',
+                    'BedrockKnowledgeBaseModel',
+                ],
+            },
+            {
+                Label: {
+                    default: 'Step 2F: Set miscellaneous settings (optional)',
                 },
+                Parameters: [
+                    'AdminUserSignUp',
+                    'ApprovedDomain',
+                    'BootstrapBucket',
+                    'BootstrapPrefix',
+                    'BuildExamples',
+                    'LogRetentionPeriod',
+                ],
+            },
             ],
         },
     },
