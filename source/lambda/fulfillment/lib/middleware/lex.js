@@ -35,6 +35,14 @@ function isElicitResponse(request, response) {
     return result;
 }
 
+function isKbResponseWithSourceLinks(request, response) {
+    qnabot.debug(`Answer source is ${_.get(response, 'result.answersource')}`);
+    qnabot.debug(`Settings from request is ${_.get(request, '_settings.KNOWLEDGE_BASE_S3_SIGNED_URLS')}`);
+    const isAnswerSourceBedrockKb = _.get(response, 'result.answersource') === 'BEDROCK KNOWLEDGE BASE';
+    const isKbSourceLinkAdded = _.get(request, '_settings.KNOWLEDGE_BASE_S3_SIGNED_URLS') === true;
+    return isAnswerSourceBedrockKb && isKbSourceLinkAdded;
+}
+
 // When using QnABot in Amazon Connect call center, callers sometimes use 'filler' words before asking their question
 // If the inputTranscript contains only filler words, return true here and the handler will throw an error
 // filler words are defined in the setting CONNECT_IGNORE_WORDS
@@ -313,7 +321,7 @@ function applyConnectInteractiveMessageButtonLimits(response) {
 }
 
 function getV2CloseTemplate(request, response) {
-    return {
+    const out = {
         sessionState: {
             sessionAttributes: _.get(response, 'session', {}),
             dialogAction: {
@@ -324,13 +332,24 @@ function getV2CloseTemplate(request, response) {
                 state: 'Fulfilled',
             },
         },
-        messages: [
+    };
+    if (isConnectClientChat(request) && isKbResponseWithSourceLinks(request, response)) {
+        qnabot.debug('Connect chat with KB source links');
+        out.messages = [
+            {
+                contentType: 'PlainText',
+                content: response.result.alt.markdown,
+            },
+        ];
+    } else {
+        out.messages = [
             {
                 contentType: response.type,
                 content: response.message,
             },
-        ],
-    };
+        ];
+    }
+    return out;
 }
 
 function getV2ElicitTemplate(request, response) {

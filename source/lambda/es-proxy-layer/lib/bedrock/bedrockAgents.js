@@ -113,7 +113,7 @@ async function generateSourceLinks(urls, KNOWLEDGE_BASE_S3_SIGNED_URL_EXPIRE_SEC
         if (!label) { // Handle crawled URLs ending with a slash
             label = url.split('/').slice(-2, -1)[0];
         }
-        const link = `<span translate=no>[${label}](${url})</span>`;
+        const link = `[${label}](${url})`;
         return link;
     });
 
